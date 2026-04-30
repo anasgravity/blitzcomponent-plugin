@@ -1,0 +1,32 @@
+{
+  "name": "blitz-component-vite-plugin",
+  "version": "1.0.0",
+  "description": "Vite plugin that generates a BlitzData component for a React project.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "dev": "unbuild --stub"
+  },
+  "keywords": [
+    "vite-plugin",
+    "vite",
+    "blitzdata"
+  ],
+  "peerDependencies": {
+    "vite": ">=4.0.0"
+  },
+  "devDependencies": {
+    "unbuild": "^2.0.0"
+  }
+}
