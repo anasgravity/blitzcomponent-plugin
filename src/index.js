@@ -11,14 +11,16 @@ import fs from "node:fs";
  *
  * @param {object}   opts
  * @param {string[]} [opts.javascripts4header=[]]  External JS URLs (header)
+ * @param {string[]} [opts.javascripts4footer=[]]  External JS URLs (footer)
  * @param {string[]} [opts.externalCss=[]]         External CSS URLs
  * @param {string}   [opts.html]                   Custom HTML for the root mount point
  * 												   (default: `<div id="root"></div>`)
- * 
+ *
  */
 export default function BlitzComponent(opts = {}) {
 	const {
 		javascripts4header = [],
+		javascripts4footer = [],
 		externalCss = [],
 		html = '<div id="root"></div>'
 	} = opts;
@@ -83,6 +85,11 @@ export default function BlitzComponent(opts = {}) {
 				javascripts4header.map((url) => [url, ""])
 			);
 
+			// ── javascripts4footer ──────────────────────────────────────────────────
+			const footer = Object.fromEntries(
+				javascripts4footer.map((url) => [url, ""])
+			);
+
 			// ── css (bundled + external) ─────────────────────────────────────────────
 			const css = {
 				...Object.fromEntries(
@@ -106,6 +113,7 @@ export default function BlitzComponent(opts = {}) {
 			const component = {
 				javascriptsmodule,
 				javascripts4header: header,
+				javascripts4footer: footer,
 				css,
 				subcomponents
 			};

@@ -6,6 +6,12 @@ export interface BlitzComponentOptions {
   javascripts4header?: string[];
 
   /**
+   * External JS URLs to include in the `javascripts4footer` section.
+   * @default []
+   */
+  javascripts4footer?: string[];
+
+  /**
    * External CSS URLs to include in the `css` section.
    * @default []
    */

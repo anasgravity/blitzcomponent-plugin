@@ -4,6 +4,7 @@ import fs from 'node:fs';
 function BlitzComponent(opts = {}) {
   const {
     javascripts4header = [],
+    javascripts4footer = [],
     externalCss = [],
     html = '<div id="root"></div>'
   } = opts;
@@ -47,6 +48,9 @@ function BlitzComponent(opts = {}) {
       const header = Object.fromEntries(
         javascripts4header.map((url) => [url, ""])
       );
+      const footer = Object.fromEntries(
+        javascripts4footer.map((url) => [url, ""])
+      );
       const css = {
         ...Object.fromEntries(
           cssFiles.map((f) => [
@@ -66,6 +70,7 @@ function BlitzComponent(opts = {}) {
       const component = {
         javascriptsmodule,
         javascripts4header: header,
+        javascripts4footer: footer,
         css,
         subcomponents
       };
