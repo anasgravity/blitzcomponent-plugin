@@ -1,13 +1,7 @@
 import path from 'node:path';
 import fs from 'node:fs';
 
-function BlitzComponent(opts = {}) {
-  const {
-    javascripts4header = [],
-    javascripts4footer = [],
-    externalCss = [],
-    html = '<div id="root"></div>'
-  } = opts;
+function BlitzComponent() {
   let appName = "";
   let namespace = "";
   let outDir = "";
@@ -31,9 +25,11 @@ function BlitzComponent(opts = {}) {
       projectRoot = resolvedConfig.root;
       outDir = resolvedConfig.build.outDir;
     },
-    // ─── 3. Write the component after the bundle is written to disk ────────────
+    // ─── 3. Write/merge the component after the bundle is written to disk ─────
     closeBundle() {
       const assetsDir = path.join(projectRoot, outDir, "assets");
+      const outputPath = path.join(projectRoot, "..", "..", `${namespace}.component.json`);
+      const ownedPrefix = `apps/${appName}/@react/${namespace}`;
       let jsFiles = [];
       let cssFiles = [];
       if (fs.existsSync(assetsDir)) {
@@ -41,47 +37,32 @@ function BlitzComponent(opts = {}) {
         jsFiles = entries.filter((f) => f.endsWith(".js"));
         cssFiles = entries.filter((f) => f.endsWith(".css"));
       }
-      const javascriptsmodule = Object.fromEntries(
-        jsFiles.map((f) => [
-          `apps/${appName}/@react/${namespace}/${outDir}/assets/${f}`,
-          ""
-        ])
+      const newJsEntries = Object.fromEntries(jsFiles.map((f) => [`${ownedPrefix}/${outDir}/assets/${f}`, ""]));
+      const newCssEntries = Object.fromEntries(cssFiles.map((f) => [`${ownedPrefix}/${outDir}/assets/${f}`, ""]));
+      let existing = {};
+      if (fs.existsSync(outputPath)) {
+        try {
+          existing = JSON.parse(fs.readFileSync(outputPath, "utf-8"));
+        } catch {
+          console.warn(`[blitz-component] Could not parse existing JSON at ${outputPath} \u2014 overwriting.`);
+        }
+      }
+      const stripOwned = (obj) => Object.fromEntries(
+        Object.entries(obj ?? {}).filter(([k]) => !k.startsWith(ownedPrefix))
       );
-      const header = Object.fromEntries(
-        javascripts4header.map((url) => [url, ""])
-      );
-      const footer = Object.fromEntries(
-        javascripts4footer.map((url) => [url, ""])
-      );
-      const css = {
-        ...Object.fromEntries(
-          cssFiles.map((f) => [
-            `apps/${appName}/@react/${namespace}/${outDir}/assets/${f}`,
-            ""
-          ])
-        ),
-        ...Object.fromEntries(externalCss.map((url) => [url, ""]))
-      };
       const component = {
-        javascriptsmodule,
-        javascripts4header: header,
-        javascripts4footer: footer,
-        css,
+        ...existing,
+        javascriptsmodule: { ...stripOwned(existing.javascriptsmodule), ...newJsEntries },
+        css: { ...stripOwned(existing.css), ...newCssEntries },
         view: {
-          html
+          ...existing.view,
+          html: existing.view?.html ?? '<div id="root"></div>'
         }
       };
-      const outputPath = path.join(projectRoot, "..", "..", `${namespace}.component.json`);
-      fs.writeFileSync(
-        outputPath,
-        JSON.stringify(component, null, 4),
-        "utf-8"
-      );
-      console.log(
-        `
-[blitz-component] Wrote component \u2192 ${path.resolve(outputPath)}
-`
-      );
+      fs.writeFileSync(outputPath, JSON.stringify(component, null, 4), "utf-8");
+      console.log(`
+[blitz-component] Wrote component \u2192 ${outputPath}
+`);
     }
   };
 }
