@@ -4,10 +4,13 @@ import fs from "node:fs";
 /**
  * Vite plugin – Blitz component generator
  *
- * Generates `../index.component.json` (relative to the project root) after
+ * Generates `<namespace>.component.json` in the root app path after
  * every build and wires up the correct public base path so that bundled
  * assets are served from:
- *   /apps/<app_name>/@react/<outDir>/assets/*
+ *   /apps/<app_name>/@react/<namespace>/<outDir>/assets/*
+ *
+ * The <namespace> is derived from the current directory name
+ * (e.g. /server/apps/my-app/@react/my-namespace → namespace = "my-namespace")
  *
  * @param {object}   opts
  * @param {string[]} [opts.javascripts4header=[]]  External JS URLs (header)
@@ -27,6 +30,7 @@ export default function BlitzComponent(opts = {}) {
 
 	/** Resolved at configResolved time */
 	let appName = "";
+	let namespace = "";
 	let outDir = "";
 	let projectRoot = "";
 
@@ -40,16 +44,18 @@ export default function BlitzComponent(opts = {}) {
 
 		// ─── 2. Derive names & inject the correct base path ──────────────────────
 		config(config) {
-			// project root → e.g. /server/apps/my-app/@react
-			// parent folder → e.g. /server/apps/my-app  → appName = "my-app"
+			// project root → e.g. /server/apps/my-app/@react/my-namespace
+			// grandparent  → e.g. /server/apps/my-app  → appName    = "my-app"
+			// basename     → e.g. my-namespace          → namespace  = "my-namespace"
 			const root = config.root ?? process.cwd();
-			appName = path.basename(path.dirname(root));
+			namespace = path.basename(root);
+			appName = path.basename(path.dirname(path.dirname(root)));
 
 			// outDir defaults to "dist" in Vite
 			outDir = config.build?.outDir ?? "dist";
 
 			// Set the public base so that bundled assets resolve correctly at runtime
-			const base = `/apps/${appName}/@react/${outDir}/`;
+			const base = `/apps/${appName}/@react/${namespace}/${outDir}/`;
 			return { base };
 		},
 
@@ -75,7 +81,7 @@ export default function BlitzComponent(opts = {}) {
 			// ── javascriptmodule ────────────────────────────────────────────────────
 			const javascriptsmodule = Object.fromEntries(
 				jsFiles.map((f) => [
-					`apps/${appName}/@react/${outDir}/assets/${f}`,
+					`apps/${appName}/@react/${namespace}/${outDir}/assets/${f}`,
 					""
 				])
 			);
@@ -94,7 +100,7 @@ export default function BlitzComponent(opts = {}) {
 			const css = {
 				...Object.fromEntries(
 					cssFiles.map((f) => [
-						`apps/${appName}/@react/${outDir}/assets/${f}`,
+						`apps/${appName}/@react/${namespace}/${outDir}/assets/${f}`,
 						""
 					])
 				),
@@ -118,8 +124,8 @@ export default function BlitzComponent(opts = {}) {
 				subcomponents
 			};
 
-			// Write to the *parent* of the project root
-			const outputPath = path.join(projectRoot, "..", "index.component.json");
+			// Write to the root app path /apps/<app_name>/, skipping @react
+			const outputPath = path.join(projectRoot, "..", "..", `${namespace}.component.json`);
 
 			fs.writeFileSync(
 				outputPath,

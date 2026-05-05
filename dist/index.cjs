@@ -16,6 +16,7 @@ function BlitzComponent(opts = {}) {
     html = '<div id="root"></div>'
   } = opts;
   let appName = "";
+  let namespace = "";
   let outDir = "";
   let projectRoot = "";
   return {
@@ -27,9 +28,10 @@ function BlitzComponent(opts = {}) {
     // ─── 2. Derive names & inject the correct base path ──────────────────────
     config(config) {
       const root = config.root ?? process.cwd();
-      appName = path__default.basename(path__default.dirname(root));
+      namespace = path__default.basename(root);
+      appName = path__default.basename(path__default.dirname(path__default.dirname(root)));
       outDir = config.build?.outDir ?? "dist";
-      const base = `/apps/${appName}/@react/${outDir}/`;
+      const base = `/apps/${appName}/@react/${namespace}/${outDir}/`;
       return { base };
     },
     configResolved(resolvedConfig) {
@@ -48,7 +50,7 @@ function BlitzComponent(opts = {}) {
       }
       const javascriptsmodule = Object.fromEntries(
         jsFiles.map((f) => [
-          `apps/${appName}/@react/${outDir}/assets/${f}`,
+          `apps/${appName}/@react/${namespace}/${outDir}/assets/${f}`,
           ""
         ])
       );
@@ -61,7 +63,7 @@ function BlitzComponent(opts = {}) {
       const css = {
         ...Object.fromEntries(
           cssFiles.map((f) => [
-            `apps/${appName}/@react/${outDir}/assets/${f}`,
+            `apps/${appName}/@react/${namespace}/${outDir}/assets/${f}`,
             ""
           ])
         ),
@@ -81,7 +83,7 @@ function BlitzComponent(opts = {}) {
         css,
         subcomponents
       };
-      const outputPath = path__default.join(projectRoot, "..", "index.component.json");
+      const outputPath = path__default.join(projectRoot, "..", "..", `${namespace}.component.json`);
       fs__default.writeFileSync(
         outputPath,
         JSON.stringify(component, null, 4),
