@@ -69,19 +69,14 @@ function BlitzComponent(opts = {}) {
         ),
         ...Object.fromEntries(externalCss.map((url) => [url, ""]))
       };
-      const subcomponents = [
-        {
-          view: {
-            html
-          }
-        }
-      ];
       const component = {
         javascriptsmodule,
         javascripts4header: header,
         javascripts4footer: footer,
         css,
-        subcomponents
+        view: {
+          html
+        }
       };
       const outputPath = path__default.join(projectRoot, "..", "..", `${namespace}.component.json`);
       fs__default.writeFileSync(

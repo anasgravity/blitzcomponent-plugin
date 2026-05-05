@@ -107,21 +107,15 @@ export default function BlitzComponent(opts = {}) {
 				...Object.fromEntries(externalCss.map((url) => [url, ""]))
 			};
 
-			// ── subcomponents ────────────────────────────────────────────────────────
-			const subcomponents = [
-				{
-					view: {
-						html
-					}
-				}
-			];
-
+			// ── component ────────────────────────────────────────────────────────
 			const component = {
 				javascriptsmodule,
 				javascripts4header: header,
 				javascripts4footer: footer,
 				css,
-				subcomponents
+				view: {
+					html
+				}
 			};
 
 			// Write to the root app path /apps/<app_name>/, skipping @react
