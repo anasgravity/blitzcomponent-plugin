@@ -1,1 +1,2 @@
+
 export default function BlitzComponent(): import("vite").Plugin;
